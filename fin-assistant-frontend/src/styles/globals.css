@@ -1,0 +1,48 @@
+﻿@import "tailwindcss";
+@import "./tokens.css";
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+.tabular-nums { font-variant-numeric: tabular-nums; }
+.card-surface {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+}
+.btn-primary {
+  background-color: var(--accent-primary);
+  color: #FFFFFF;
+  border-radius: var(--radius-control);
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+.btn-primary:hover:not(:disabled) { background-color: var(--accent-hover); }
+.btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn-secondary {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-control);
+  transition: background-color 0.15s ease;
+  cursor: pointer;
+}
+.btn-secondary:hover:not(:disabled) { background-color: var(--bg-muted); }
+.input-control {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-control);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  width: 100%;
+}
+.input-control:focus {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: -1px;
+}

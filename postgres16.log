@@ -1,0 +1,4 @@
+2026-10-25 10:24:26.551 GMT [43991] LOG:  unrecognized configuration parameter "autovacuum_worker_slots" in file "/opt/homebrew/var/postgres16_custom/postgresql.conf" line 687
+2026-10-25 10:24:26.551 GMT [43991] FATAL:  configuration file "/opt/homebrew/var/postgres16_custom/postgresql.conf" contains errors
+2026-10-25 10:24:51.943 GMT [44710] LOG:  unrecognized configuration parameter "autovacuum_worker_slots" in file "/opt/homebrew/var/postgres16_custom/postgresql.conf" line 687
+2026-10-25 10:24:51.943 GMT [44710] FATAL:  configuration file "/opt/homebrew/var/postgres16_custom/postgresql.conf" contains errors

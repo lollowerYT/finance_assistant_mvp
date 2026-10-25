@@ -1,0 +1,16 @@
+﻿:root {
+  --bg-app: #F6F5F2;
+  --bg-card: #FFFFFF;
+  --bg-subtle: #FCFBF9;
+  --bg-muted: #EFECE6;
+  --text-main: #1F2421;
+  --text-secondary: #6B706B;
+  --border-color: #E6E4DD;
+  --accent-primary: #0F766E;
+  --accent-hover: #115E59;
+  --accent-soft: #CCFBF1;
+  --color-positive: #047857;
+  --color-negative: #B91C1C;
+  --radius-card: 16px;
+  --radius-control: 12px;
+}

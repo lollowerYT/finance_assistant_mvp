@@ -1,0 +1,30 @@
+2026-10-25 15:27:37.054 +05 [46064] LOG:  starting PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin27.0.0, compiled by Apple clang version 21.0.0 (clang-2100.3.34.2), 64-bit
+2026-10-25 15:27:37.055 +05 [46064] LOG:  could not bind IPv4 address "127.0.0.1": Address already in use
+2026-10-25 15:27:37.055 +05 [46064] HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+2026-10-25 15:27:37.055 +05 [46064] LOG:  could not bind IPv6 address "::1": Address already in use
+2026-10-25 15:27:37.055 +05 [46064] HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+2026-10-25 15:27:37.055 +05 [46064] WARNING:  could not create listen socket for "localhost"
+2026-10-25 15:27:37.055 +05 [46064] FATAL:  could not create any TCP/IP sockets
+2026-10-25 15:27:37.055 +05 [46064] LOG:  database system is shut down
+2026-10-25 15:28:43.838 +05 [46824] LOG:  starting PostgreSQL 16.15 (Homebrew) on aarch64-apple-darwin27.0.0, compiled by Apple clang version 21.0.0 (clang-2100.3.34.2), 64-bit
+2026-10-25 15:28:43.839 +05 [46824] LOG:  listening on IPv4 address "127.0.0.1", port 5434
+2026-10-25 15:28:43.839 +05 [46824] LOG:  listening on IPv6 address "::1", port 5434
+2026-10-25 15:28:43.840 +05 [46824] LOG:  listening on Unix socket "/tmp/.s.PGSQL.5434"
+2026-10-25 15:28:43.843 +05 [46827] LOG:  database system was shut down at 2026-10-25 15:19:29 +05
+2026-10-25 15:28:43.846 +05 [46824] LOG:  database system is ready to accept connections
+2026-10-25 15:33:43.843 +05 [46825] LOG:  checkpoint starting: time
+2026-10-25 15:34:58.142 +05 [49596] ERROR:  permission denied for schema public at character 15
+2026-10-25 15:34:58.142 +05 [49596] STATEMENT:  
+	CREATE TABLE alembic_version (
+		version_num VARCHAR(32) NOT NULL, 
+		CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+	)
+	
+	
+2026-10-25 15:35:24.012 +05 [46825] LOG:  checkpoint complete: wrote 991 buffers (6.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=100.155 s, sync=0.011 s, total=100.169 s; sync files=317, longest=0.001 s, average=0.001 s; distance=4643 kB, estimate=4643 kB; lsn=0/19A6AC8, redo lsn=0/19A6A90
+2026-10-25 15:38:43.016 +05 [46825] LOG:  checkpoint starting: time
+2026-10-25 15:38:54.268 +05 [46825] LOG:  checkpoint complete: wrote 111 buffers (0.7%); 0 WAL file(s) added, 0 removed, 0 recycled; write=11.243 s, sync=0.005 s, total=11.253 s; sync files=85, longest=0.001 s, average=0.001 s; distance=393 kB, estimate=4218 kB; lsn=0/1A091D8, redo lsn=0/1A091A0
+2026-10-25 15:43:43.277 +05 [46825] LOG:  checkpoint starting: time
+2026-10-25 15:43:46.627 +05 [46825] LOG:  checkpoint complete: wrote 34 buffers (0.2%); 0 WAL file(s) added, 0 removed, 0 recycled; write=3.347 s, sync=0.002 s, total=3.351 s; sync files=21, longest=0.001 s, average=0.001 s; distance=31 kB, estimate=3800 kB; lsn=0/1A10FF8, redo lsn=0/1A10FC0
+2026-10-25 15:48:43.629 +05 [46825] LOG:  checkpoint starting: time
+2026-10-25 15:48:44.551 +05 [46825] LOG:  checkpoint complete: wrote 10 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.918 s, sync=0.002 s, total=0.923 s; sync files=8, longest=0.001 s, average=0.001 s; distance=1 kB, estimate=3420 kB; lsn=0/1A11490, redo lsn=0/1A11458
