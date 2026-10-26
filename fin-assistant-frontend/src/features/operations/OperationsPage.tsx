@@ -8,9 +8,10 @@ import { formatMoney } from '../../lib/formatMoney';
 import { formatOperationDateTime, dateFilterToIsoBoundary } from '../../lib/formatDate';
 import { OperationFormModal } from './OperationFormModal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { DatePicker } from '../../components/ui/DatePicker';
 import type { Account, Category, Operation, OperationType } from '../../types/api';
 
-const PAGE_LIMIT = 50;
+const PAGE_LIMIT = 10;
 
 export const OperationsPage: React.FC = () => {
   const [operations, setOperations] = useState<Operation[]>([]);
@@ -41,9 +42,7 @@ export const OperationsPage: React.FC = () => {
       const [accs, cats] = await Promise.all([accountsApi.list(), categoriesApi.list()]);
       setAccounts(accs);
       setCategories(cats);
-    } catch {
-      // Ошибки справочников обрабатываются при загрузке списка
-    }
+    } catch {}
   }, []);
 
   const loadOperations = useCallback(
@@ -131,7 +130,6 @@ export const OperationsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Панель фильтров (п. 6.2) */}
       <div className="card-surface p-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 items-end text-xs">
           <div>
@@ -191,27 +189,25 @@ export const OperationsPage: React.FC = () => {
 
           <div>
             <label className="block font-semibold text-[#6B706B] mb-1">Дата С</label>
-            <input
-              type="date"
+            <DatePicker
               value={filterFromDate}
-              onChange={(e) => {
-                setFilterFromDate(e.target.value);
+              onChange={(val) => {
+                setFilterFromDate(val);
                 setOffset(0);
               }}
-              className="input-control"
+              placeholder="дд.мм.гггг"
             />
           </div>
 
           <div>
             <label className="block font-semibold text-[#6B706B] mb-1">Дата По</label>
-            <input
-              type="date"
+            <DatePicker
               value={filterToDate}
-              onChange={(e) => {
-                setFilterToDate(e.target.value);
+              onChange={(val) => {
+                setFilterToDate(val);
                 setOffset(0);
               }}
-              className="input-control"
+              placeholder="дд.мм.гггг"
             />
           </div>
 
@@ -239,18 +235,17 @@ export const OperationsPage: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* Таблица для Desktop (п. 6.3) */}
           <div className="hidden md:block card-surface overflow-hidden">
-            <table className="w-full text-left text-xs">
+            <table className="w-full table-fixed text-left text-xs">
               <thead className="bg-[#FCFBF9] border-b border-[#E6E4DD] text-[#6B706B] uppercase text-[11px]">
                 <tr>
-                  <th className="py-3 px-4">Дата и время</th>
-                  <th className="py-3 px-4">Тип</th>
-                  <th className="py-3 px-4">Категория</th>
-                  <th className="py-3 px-4">Описание</th>
-                  <th className="py-3 px-4">Счёт / Счета</th>
-                  <th className="py-3 px-4 text-right">Сумма</th>
-                  <th className="py-3 px-4 text-right">Действия</th>
+                  <th className="py-3 px-4 w-[155px]">Дата и время</th>
+                  <th className="py-3 px-3 w-[95px]">Тип</th>
+                  <th className="py-3 px-3 w-[140px]">Категория</th>
+                  <th className="py-3 px-3">Описание</th>
+                  <th className="py-3 px-3 w-[160px]">Счёт / Счета</th>
+                  <th className="py-3 px-4 w-[125px] text-right">Сумма</th>
+                  <th className="py-3 px-4 w-[85px] text-right">Действия</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E6E4DD]">
@@ -266,7 +261,7 @@ export const OperationsPage: React.FC = () => {
                       <td className="py-3 px-4 whitespace-nowrap text-[#6B706B]">
                         {formatOperationDateTime(op.occurred_at)}
                       </td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3 whitespace-nowrap">
                         <span
                           className={`px-2 py-0.5 rounded-md font-semibold text-[11px] ${
                             op.type === 'income'
@@ -279,9 +274,16 @@ export const OperationsPage: React.FC = () => {
                           {op.type === 'income' ? 'Доход' : op.type === 'transfer' ? 'Перевод' : 'Расход'}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-semibold">{catName}</td>
-                      <td className="py-3 px-4 text-[#6B706B] max-w-xs truncate">{op.comment || '—'}</td>
-                      <td className="py-3 px-4">
+                      <td className="py-3 px-3 font-semibold truncate" title={catName}>
+                        {catName}
+                      </td>
+                      <td className="py-3 px-3 text-[#6B706B] truncate" title={op.comment || ''}>
+                        {op.comment || '—'}
+                      </td>
+                      <td
+                        className="py-3 px-3 truncate"
+                        title={op.type === 'transfer' ? `${fromName} → ${toName}` : fromName}
+                      >
                         {op.type === 'transfer' ? `${fromName} → ${toName}` : fromName}
                       </td>
                       <td
@@ -299,7 +301,7 @@ export const OperationsPage: React.FC = () => {
                             setIsModalOpen(true);
                           }}
                           aria-label="Редактировать операцию"
-                          className="p-1 text-[#6B706B] hover:text-[#1F2421] mr-1"
+                          className="p-1 text-[#6B706B] hover:text-[#1F2421] mr-1 cursor-pointer"
                         >
                           <Pencil className="w-3.5 h-3.5 inline" />
                         </button>
@@ -309,7 +311,7 @@ export const OperationsPage: React.FC = () => {
                             setDeletingOp(op);
                           }}
                           aria-label="Удалить операцию"
-                          className="p-1 text-red-700 hover:text-red-900"
+                          className="p-1 text-red-700 hover:text-red-900 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5 inline" />
                         </button>
@@ -321,7 +323,6 @@ export const OperationsPage: React.FC = () => {
             </table>
           </div>
 
-          {/* Карточки для Mobile (п. 6.3) */}
           <div className="md:hidden space-y-2.5">
             {operations.map((op) => {
               const fromName = accountMap.get(op.from_account_id) || `Счёт #${op.from_account_id}`;
@@ -343,7 +344,7 @@ export const OperationsPage: React.FC = () => {
                     </span>
                   </div>
                   <div className="font-bold">{catName}</div>
-                  {op.comment && <div className="text-[#6B706B] text-[11px]">{op.comment}</div>}
+                  {op.comment && <div className="text-[#6B706B] text-[11px] break-words">{op.comment}</div>}
                   <div className="pt-2 border-t border-[#E6E4DD] flex justify-between items-center text-[11px] text-[#6B706B]">
                     <span>
                       {op.type === 'transfer' ? `${fromName} → ${toName}` : fromName} •{' '}
@@ -375,7 +376,6 @@ export const OperationsPage: React.FC = () => {
             })}
           </div>
 
-          {/* Пагинация (п. 6.4) */}
           <div className="flex items-center justify-between text-xs text-[#6B706B] pt-2">
             <span>
               Показано {offset + 1}–{Math.min(offset + operations.length, total)} из {total}

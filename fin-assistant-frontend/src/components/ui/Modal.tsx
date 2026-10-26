@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -20,8 +21,8 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[1px] p-4 overflow-y-auto">
+  return createPortal(
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 overflow-y-auto">
       <div
         role="dialog"
         aria-modal="true"
@@ -36,13 +37,14 @@ export const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }
             type="button"
             onClick={onClose}
             aria-label="Закрыть окно"
-            className="p-1 rounded-lg text-[#6B706B] hover:bg-[#EFECE6] hover:text-[#1F2421]"
+            className="p-1 rounded-lg text-[#6B706B] hover:bg-[#EFECE6] hover:text-[#1F2421] cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

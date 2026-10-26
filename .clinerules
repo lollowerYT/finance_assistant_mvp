@@ -1,0 +1,4 @@
+CRITICAL RULES:
+1. NEVER explain your actions, NEVER summarize command outputs, NEVER repeat terminal output in your messages.
+2. Do not output thinking or reasoning steps.
+3. When calling attempt_completion, output ONLY the single word: "DONE".

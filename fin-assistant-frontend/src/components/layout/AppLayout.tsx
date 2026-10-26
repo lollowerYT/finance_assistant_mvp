@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import { LayoutDashboard, ArrowLeftRight, Wallet, CalendarClock, ShieldCheck, LogOut } from 'lucide-react';
 import { useAuth } from '../../app/providers';
@@ -16,7 +16,7 @@ export const AppLayout: React.FC = () => {
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col lg:flex-row bg-[#FCFBF9]">
-      {/* Десктопное левое меню: фиксированное, скроллится только внутри себя если нужно */}
+      {/* Десктопное левое меню */}
       <aside className="hidden lg:flex lg:w-64 flex-col justify-between bg-[#FCFBF9] border-r border-[#E6E4DD] p-5 shrink-0 h-full">
         <div>
           <div className="flex items-center gap-2.5 mb-8 px-2">
@@ -67,9 +67,11 @@ export const AppLayout: React.FC = () => {
         </div>
       </header>
 
-      {/* Основной контейнер контента с собственным скроллом */}
-      <main className="flex-1 p-4 md:p-8 pb-24 lg:pb-8 max-w-5xl w-full mx-auto overflow-y-auto h-full">
-        <Outlet />
+      {/* Основной контейнер контента */}
+      <main className="flex-1 overflow-y-auto h-full w-full">
+        <div className="p-4 md:p-8 pb-24 lg:pb-8 max-w-5xl w-full mx-auto">
+          <Outlet />
+        </div>
       </main>
 
       {/* Мобильная нижняя навигация */}
