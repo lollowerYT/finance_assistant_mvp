@@ -2,9 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 interface DatePickerProps {
-  value: string;
+  value: string; // YYYY-MM-DD
   onChange: (value: string) => void;
   placeholder?: string;
+  label?: string;
 }
 
 const MONTHS_RU = [
@@ -17,10 +18,12 @@ const DAYS_RU = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 export const DatePicker: React.FC<DatePickerProps> = ({
   value,
   onChange,
-  placeholder = 'Выберите дату',
+  placeholder = 'дд.мм.гггг',
+  label,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = /Mobi|Android/i.test(navigator.userAgent);
 
   const initialDate = value ? new Date(value + 'T00:00:00') : new Date();
   const [viewYear, setViewYear] = useState(initialDate.getFullYear());
@@ -46,35 +49,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-  const firstDayRaw = new Date(viewYear, viewMonth, 1).getDay();
-  const startOffset = (firstDayRaw + 6) % 7;
-
-  const prevMonth = () => {
-    if (viewMonth === 0) {
-      setViewMonth(11);
-      setViewYear((y) => y - 1);
-    } else {
-      setViewMonth((m) => m - 1);
-    }
-  };
-
-  const nextMonth = () => {
-    if (viewMonth === 11) {
-      setViewMonth(0);
-      setViewYear((y) => y + 1);
-    } else {
-      setViewMonth((m) => m + 1);
-    }
-  };
-
-  const selectDay = (day: number) => {
-    const m = String(viewMonth + 1).padStart(2, '0');
-    const d = String(day).padStart(2, '0');
-    onChange(`${viewYear}-${m}-${d}`);
-    setIsOpen(false);
-  };
-
   const formatDisplay = (val: string) => {
     if (!val) return '';
     const [y, m, d] = val.split('-');
@@ -82,15 +56,27 @@ export const DatePicker: React.FC<DatePickerProps> = ({
     return `${d}.${m}.${y}`;
   };
 
+  if (isMobile) {
+    return (
+      <div className="space-y-1 text-xs">
+        {label && <label className="block font-semibold mb-1">{label}</label>}
+        <input
+          type="date"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className="input-control w-full"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative space-y-1 text-xs">
+      {label && <label className="block font-semibold mb-1">{label}</label>}
       <div
         role="button"
         tabIndex={0}
         onClick={() => setIsOpen((o) => !o)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') setIsOpen((o) => !o);
-        }}
         className="input-control flex items-center justify-between cursor-pointer select-none"
       >
         <span className={value ? 'text-[#1F2421]' : 'text-[#6B706B]'}>
@@ -100,7 +86,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           {value && (
             <span
               role="button"
-              aria-label="Очистить дату"
               onClick={(e) => {
                 e.stopPropagation();
                 onChange('');
@@ -115,12 +100,19 @@ export const DatePicker: React.FC<DatePickerProps> = ({
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 top-full mt-1.5 z-40 w-64 card-surface p-3.5 shadow-xl border border-[#E6E4DD] text-xs">
+        <div className="absolute left-0 top-full mt-1.5 z-50 w-64 card-surface p-3.5 shadow-xl border border-[#E6E4DD] bg-white">
           <div className="flex items-center justify-between mb-3">
             <button
               type="button"
-              onClick={prevMonth}
-              className="p-1.5 rounded-lg hover:bg-[#EFECE6] text-[#1F2421] transition cursor-pointer"
+              onClick={() => {
+                if (viewMonth === 0) {
+                  setViewMonth(11);
+                  setViewYear((y) => y - 1);
+                } else {
+                  setViewMonth((m) => m - 1);
+                }
+              }}
+              className="p-1.5 rounded-lg hover:bg-[#EFECE6] text-[#1F2421] cursor-pointer"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -129,8 +121,15 @@ export const DatePicker: React.FC<DatePickerProps> = ({
             </div>
             <button
               type="button"
-              onClick={nextMonth}
-              className="p-1.5 rounded-lg hover:bg-[#EFECE6] text-[#1F2421] transition cursor-pointer"
+              onClick={() => {
+                if (viewMonth === 11) {
+                  setViewMonth(0);
+                  setViewYear((y) => y + 1);
+                } else {
+                  setViewMonth((m) => m + 1);
+                }
+              }}
+              className="p-1.5 rounded-lg hover:bg-[#EFECE6] text-[#1F2421] cursor-pointer"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -143,10 +142,10 @@ export const DatePicker: React.FC<DatePickerProps> = ({
           </div>
 
           <div className="grid grid-cols-7 gap-1 text-center">
-            {Array.from({ length: startOffset }).map((_, idx) => (
+            {Array.from({ length: (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7 }).map((_, idx) => (
               <div key={`empty-${idx}`} />
             ))}
-            {Array.from({ length: daysInMonth }).map((_, idx) => {
+            {Array.from({ length: new Date(viewYear, viewMonth + 1, 0).getDate() }).map((_, idx) => {
               const day = idx + 1;
               const dateIso = `${viewYear}-${String(viewMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
               const isSelected = value === dateIso;
@@ -155,44 +154,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({
                 <button
                   key={day}
                   type="button"
-                  onClick={() => selectDay(day)}
+                  onClick={() => {
+                    onChange(dateIso);
+                    setIsOpen(false);
+                  }}
                   className={`py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                    isSelected
-                      ? 'bg-[#0F766E] text-white'
-                      : 'text-[#1F2421] hover:bg-[#EFECE6]'
+                    isSelected ? 'bg-[#0F766E] text-white' : 'text-[#1F2421] hover:bg-[#EFECE6]'
                   }`}
                 >
                   {day}
                 </button>
               );
             })}
-          </div>
-
-          <div className="mt-3 pt-2.5 border-t border-[#E6E4DD] flex justify-between items-center">
-            <button
-              type="button"
-              onClick={() => {
-                onChange('');
-                setIsOpen(false);
-              }}
-              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-[#6B706B] hover:bg-[#EFECE6] hover:text-[#1F2421] transition cursor-pointer"
-            >
-              Очистить
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const now = new Date();
-                const y = now.getFullYear();
-                const m = String(now.getMonth() + 1).padStart(2, '0');
-                const d = String(now.getDate()).padStart(2, '0');
-                onChange(`${y}-${m}-${d}`);
-                setIsOpen(false);
-              }}
-              className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-[#0F766E] hover:bg-teal-50 transition cursor-pointer"
-            >
-              Сегодня
-            </button>
           </div>
         </div>
       )}

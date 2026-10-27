@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Plus, Pencil, Trash2, ChevronDown } from 'lucide-react';
 import { accountsApi } from '../../api/accounts';
 import { dashboardApi } from '../../api/dashboard';
 import { AppApiError } from '../../api/errors';
@@ -7,9 +8,30 @@ import { formatMoney, normalizeMoneyInput } from '../../lib/formatMoney';
 import { validateAccountForm } from '../../lib/validation';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { MoneyInput } from '../../components/ui/MoneyInput';
 import type { Account } from '../../types/api';
 
+const POPULAR_ACCOUNTS = [
+  'Наличные',
+  'Т-Банк',
+  'Сбербанк',
+  'Альфа-Банк',
+  'ВТБ',
+  'Ozon Банк',
+  'WB Кошелёк',
+  'Яндекс Пэй',
+  'Газпромбанк',
+  'Совкомбанк',
+  'Райффайзен Банк',
+  'Россельхозбанк',
+  'Накопительный счёт',
+  'Кредитная карта',
+];
+
 export const AccountsPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [totalBalance, setTotalBalance] = useState<string>('0.00');
   const [loading, setLoading] = useState(true);
@@ -23,9 +45,43 @@ export const AccountsPage: React.FC = () => {
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const [isSuggestionsOpen, setIsSuggestionsOpen] = useState(false);
+  const suggestionsContainerRef = useRef<HTMLDivElement>(null);
+
   const [deletingAccount, setDeletingAccount] = useState<Account | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const openCreate = useCallback(() => {
+    setEditingAccount(null);
+    setName('');
+    setBalance('0.00');
+    setFieldErrors({});
+    setFormError(null);
+    setIsSuggestionsOpen(false);
+    setIsModalOpen(true);
+  }, []);
+
+  useEffect(() => {
+    const state = location.state as { openCreate?: boolean } | null;
+    if (state?.openCreate) {
+      openCreate();
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate, openCreate]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        suggestionsContainerRef.current &&
+        !suggestionsContainerRef.current.contains(e.target as Node)
+      ) {
+        setIsSuggestionsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const loadData = useCallback(async (signal?: AbortSignal) => {
     setLoading(true);
@@ -51,26 +107,23 @@ export const AccountsPage: React.FC = () => {
     return () => controller.abort();
   }, [loadData]);
 
-  const openCreate = () => {
-    setEditingAccount(null);
-    setName('');
-    setBalance('0.00');
-    setFieldErrors({});
-    setFormError(null);
-    setIsModalOpen(true);
-  };
-
   const openEdit = (acc: Account) => {
     setEditingAccount(acc);
     setName(acc.name);
     setBalance(acc.balance);
     setFieldErrors({});
     setFormError(null);
+    setIsSuggestionsOpen(false);
     setIsModalOpen(true);
   };
 
+  const filteredSuggestions = POPULAR_ACCOUNTS.filter((item) =>
+    item.toLowerCase().includes(name.trim().toLowerCase())
+  );
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSuggestionsOpen(false);
     setFormError(null);
     const errors = validateAccountForm(name, balance);
     if (Object.keys(errors).length > 0) {
@@ -136,7 +189,6 @@ export const AccountsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Верхняя сводка по всем счетам (п. 7.2) */}
       <div className="card-surface p-5 flex items-center justify-between">
         <div>
           <div className="text-xs text-[#6B706B]">Общая сумма на счетах</div>
@@ -210,38 +262,67 @@ export const AccountsPage: React.FC = () => {
         )}
 
         <form onSubmit={handleSave} noValidate className="space-y-4 text-xs">
-          <div>
+          <div ref={suggestionsContainerRef} className="relative">
             <label className="block font-semibold mb-1">Название счёта *</label>
-            <input
-              type="text"
-              maxLength={100}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Например, Основная карта"
-              className="input-control"
-            />
+            <div className="relative flex items-center">
+              <input
+                type="text"
+                maxLength={100}
+                value={name}
+                onFocus={() => setIsSuggestionsOpen(true)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setIsSuggestionsOpen(true);
+                }}
+                placeholder="Выберите из списка или введите своё"
+                className="input-control pr-8"
+              />
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={() => setIsSuggestionsOpen((v) => !v)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#6B706B] hover:text-[#1F2421] cursor-pointer"
+              >
+                <ChevronDown className="w-4 h-4" />
+              </button>
+            </div>
+
+            {isSuggestionsOpen && filteredSuggestions.length > 0 && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-50 max-h-48 overflow-y-auto card-surface p-1.5 shadow-xl border border-[#E6E4DD] bg-white">
+                {filteredSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      setName(suggestion);
+                      setIsSuggestionsOpen(false);
+                    }}
+                    className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium transition cursor-pointer flex items-center justify-between ${
+                      name.trim().toLowerCase() === suggestion.toLowerCase()
+                        ? 'bg-[#CCFBF1] text-[#0F766E] font-semibold'
+                        : 'text-[#1F2421] hover:bg-[#EFECE6]'
+                    }`}
+                  >
+                    <span>{suggestion}</span>
+                    {suggestion === 'Наличные' && (
+                      <span className="text-[10px] text-[#6B706B]">Популярное</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {fieldErrors.name && <p className="text-red-600 mt-1">{fieldErrors.name}</p>}
           </div>
 
-          <div>
-            <label className="block font-semibold mb-1">
-              {editingAccount ? 'Текущий баланс (₽) *' : 'Начальный баланс (₽) *'}
-            </label>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={balance}
-              onChange={(e) => setBalance(e.target.value)}
-              placeholder="35000.00"
-              className="input-control tabular-nums font-semibold"
-            />
-            {fieldErrors.balance && <p className="text-red-600 mt-1">{fieldErrors.balance}</p>}
-            <p className="text-[11px] text-[#6B706B] mt-1.5">
-              {editingAccount
-                ? 'Изменение остатка не создаст отдельную операцию в истории.'
-                : 'Создание счёта задаёт начальный остаток и не создаёт операцию дохода.'}
-            </p>
-          </div>
+          <MoneyInput
+            label={editingAccount ? 'Текущий баланс (₽) *' : 'Начальный баланс (₽) *'}
+            value={balance}
+            onChange={setBalance}
+            placeholder="35000.00"
+            error={fieldErrors.balance}
+          />
 
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={() => setIsModalOpen(false)} className="btn-secondary px-4 py-2 font-semibold">

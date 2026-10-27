@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
-import { LayoutDashboard, ArrowLeftRight, Wallet, CalendarClock, ShieldCheck, LogOut } from 'lucide-react';
+import {
+  LayoutDashboard,
+  ArrowLeftRight,
+  Wallet,
+  CalendarClock,
+  ShieldCheck,
+  LogOut,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react';
 import { useAuth } from '../../app/providers';
 
 const NAV_ITEMS = [
@@ -13,42 +22,95 @@ const NAV_ITEMS = [
 
 export const AppLayout: React.FC = () => {
   const { user, logout } = useAuth();
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    return localStorage.getItem('sidebar_collapsed') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_collapsed', String(collapsed));
+  }, [collapsed]);
 
   return (
     <div className="h-screen w-screen overflow-hidden flex flex-col lg:flex-row bg-[#FCFBF9]">
       {/* Десктопное левое меню */}
-      <aside className="hidden lg:flex lg:w-64 flex-col justify-between bg-[#FCFBF9] border-r border-[#E6E4DD] p-5 shrink-0 h-full">
-        <div>
-          <div className="flex items-center gap-2.5 mb-8 px-2">
-            <div className="w-8 h-8 rounded-xl bg-[#0F766E] text-white flex items-center justify-center font-bold text-sm">₽</div>
-            <div>
-              <div className="font-bold text-sm leading-tight">ФинПомощник</div>
-              <div className="text-[11px] text-[#6B706B]">Контроль бюджета</div>
-            </div>
+      <aside
+        className={`hidden lg:flex flex-col justify-between bg-[#FCFBF9] border-r border-[#E6E4DD] p-4 shrink-0 h-full transition-all duration-200 ${
+          collapsed ? 'lg:w-20 items-center' : 'lg:w-64'
+        }`}
+      >
+        <div className="w-full">
+          <div
+            className={`flex items-center mb-8 ${
+              collapsed ? 'justify-center' : 'justify-between px-2'
+            }`}
+          >
+            {!collapsed && (
+              <div className="flex items-center gap-2.5 overflow-hidden">
+                <div className="w-8 h-8 rounded-xl bg-[#0F766E] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                  ₽
+                </div>
+                <div className="truncate">
+                  <div className="font-bold text-sm leading-tight">ФинПомощник</div>
+                  <div className="text-[11px] text-[#6B706B]">Контроль бюджета</div>
+                </div>
+              </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setCollapsed((c) => !c)}
+              title={collapsed ? 'Развернуть меню' : 'Свернуть меню'}
+              aria-label={collapsed ? 'Развернуть меню' : 'Свернуть меню'}
+              className="p-2 rounded-xl text-[#6B706B] hover:bg-[#EFECE6] hover:text-[#1F2421] transition cursor-pointer shrink-0"
+            >
+              {collapsed ? (
+                <PanelLeftOpen className="w-4 h-4" />
+              ) : (
+                <PanelLeftClose className="w-4 h-4" />
+              )}
+            </button>
           </div>
+
           <nav className="space-y-1">
             {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
               <NavLink
                 key={to}
                 to={to}
                 end={end}
+                title={collapsed ? label : undefined}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition ${
-                    isActive ? 'bg-[#0F766E] text-white' : 'text-[#6B706B] hover:bg-[#EFECE6] hover:text-[#1F2421]'
+                  `flex items-center rounded-xl text-xs font-semibold transition ${
+                    collapsed
+                      ? 'justify-center p-3'
+                      : 'gap-3 px-3.5 py-2.5'
+                  } ${
+                    isActive
+                      ? 'bg-[#0F766E] text-white'
+                      : 'text-[#6B706B] hover:bg-[#EFECE6] hover:text-[#1F2421]'
                   }`
                 }
               >
                 <Icon className="w-4 h-4 shrink-0" />
-                <span>{label}</span>
+                {!collapsed && <span className="truncate">{label}</span>}
               </NavLink>
             ))}
           </nav>
         </div>
-        <div className="border-t border-[#E6E4DD] pt-4 px-2">
-          <div className="text-xs font-medium truncate mb-2">{user?.email}</div>
-          <button onClick={logout} className="flex items-center gap-2 text-xs text-red-700 hover:underline font-medium cursor-pointer">
-            <LogOut className="w-3.5 h-3.5" />
-            <span>Выйти</span>
+
+        <div className="border-t border-[#E6E4DD] pt-4 w-full">
+          {!collapsed && (
+            <div className="text-xs font-medium truncate mb-2 px-2" title={user?.email}>
+              {user?.email}
+            </div>
+          )}
+          <button
+            onClick={logout}
+            title={collapsed ? `Выйти (${user?.email ?? ''})` : undefined}
+            className={`flex items-center text-xs text-red-700 hover:bg-red-50 rounded-xl font-medium cursor-pointer transition w-full ${
+              collapsed ? 'justify-center p-2.5' : 'gap-2 px-2 py-1.5'
+            }`}
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!collapsed && <span>Выйти</span>}
           </button>
         </div>
       </aside>
@@ -56,12 +118,18 @@ export const AppLayout: React.FC = () => {
       {/* Мобильная шапка */}
       <header className="lg:hidden bg-[#FCFBF9] border-b border-[#E6E4DD] px-4 py-3 flex items-center justify-between sticky top-0 z-30 shrink-0">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-[#0F766E] text-white flex items-center justify-center font-bold text-xs">₽</div>
+          <div className="w-7 h-7 rounded-lg bg-[#0F766E] text-white flex items-center justify-center font-bold text-xs">
+            ₽
+          </div>
           <span className="font-bold text-sm">ФинПомощник</span>
         </div>
         <div className="flex items-center gap-3">
           <span className="text-xs text-[#6B706B] truncate max-w-[150px]">{user?.email}</span>
-          <button onClick={logout} aria-label="Выйти" className="p-1.5 rounded-lg border border-[#E6E4DD] text-red-700">
+          <button
+            onClick={logout}
+            aria-label="Выйти"
+            className="p-1.5 rounded-lg border border-[#E6E4DD] text-red-700"
+          >
             <LogOut className="w-4 h-4" />
           </button>
         </div>

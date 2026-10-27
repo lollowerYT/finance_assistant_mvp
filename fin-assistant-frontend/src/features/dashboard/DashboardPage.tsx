@@ -83,7 +83,7 @@ export const DashboardPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Шапка страницы (п. 5.1) */}
+      {/* Шапка страницы */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold tracking-tight">Мои финансы</h1>
@@ -98,16 +98,24 @@ export const DashboardPage: React.FC = () => {
             <Plus className="w-4 h-4" />
             <span>Добавить операцию</span>
           </button>
-          <Link to="/accounts" className="btn-secondary px-3 py-2 text-xs font-semibold">
+          <Link
+            to="/accounts"
+            state={{ openCreate: true }}
+            className="btn-secondary px-3 py-2 text-xs font-semibold"
+          >
             + Счёт
           </Link>
-          <Link to="/planned-expenses" className="btn-secondary px-3 py-2 text-xs font-semibold">
+          <Link
+            to="/planned-expenses"
+            state={{ openCreate: true }}
+            className="btn-secondary px-3 py-2 text-xs font-semibold"
+          >
             + Запланировать расход
           </Link>
         </div>
       </div>
 
-      {/* Пустое состояние нового пользователя (п. 5.8) */}
+      {/* Пустое состояние нового пользователя */}
       {isNewUserEmpty && (
         <div className="card-surface p-6 border-dashed border-2 border-[#0F766E]/40 bg-[#FCFBF9] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -116,13 +124,17 @@ export const DashboardPage: React.FC = () => {
               У вас пока не добавлено ни одного счёта. Добавьте первый счёт, чтобы приложение рассчитало доступную для трат сумму.
             </p>
           </div>
-          <Link to="/accounts" className="btn-primary px-4 py-2 text-xs font-semibold shrink-0">
+          <Link
+            to="/accounts"
+            state={{ openCreate: true }}
+            className="btn-primary px-4 py-2 text-xs font-semibold shrink-0"
+          >
             Добавить первый счёт
           </Link>
         </div>
       )}
 
-      {/* Главная карточка доступной суммы (п. 5.2) */}
+      {/* Главная карточка доступной суммы */}
       <div
         className={`card-surface p-6 md:p-7 ${
           isDeficit ? 'border-2 border-red-300 bg-red-50/40' : 'border-2 border-[#0F766E]/25 bg-[#FCFBF9]'
@@ -197,9 +209,14 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* 3 карточки финансовой сводки (п. 5.3) */}
+      {/* 3 интерактивные карточки финансовой сводки */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="card-surface p-4">
+        <div
+          onClick={() => navigate('/accounts')}
+          role="button"
+          tabIndex={0}
+          className="card-surface p-4 cursor-pointer hover:border-[#0F766E] transition"
+        >
           <div className="flex items-center justify-between text-xs text-[#6B706B] mb-1">
             <span>Всего на счетах</span>
             <Wallet className="w-4 h-4 text-[#0F766E]" />
@@ -208,7 +225,12 @@ export const DashboardPage: React.FC = () => {
           <p className="text-[11px] text-[#6B706B] mt-1">Сумма текущих остатков по всем счетам</p>
         </div>
 
-        <div className="card-surface p-4">
+        <div
+          onClick={() => navigate('/planned-expenses')}
+          role="button"
+          tabIndex={0}
+          className="card-surface p-4 cursor-pointer hover:border-[#0F766E] transition"
+        >
           <div className="flex items-center justify-between text-xs text-[#6B706B] mb-1">
             <span>Будущие расходы</span>
             <CalendarClock className="w-4 h-4 text-amber-700" />
@@ -225,7 +247,6 @@ export const DashboardPage: React.FC = () => {
           onClick={() => navigate('/reserve')}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && navigate('/reserve')}
           className="card-surface p-4 cursor-pointer hover:border-[#0F766E] transition"
         >
           <div className="flex items-center justify-between text-xs text-[#6B706B] mb-1">
@@ -239,7 +260,7 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Счета (п. 5.4) и Будущие расходы (п. 5.5) */}
+      {/* Счета и Будущие расходы */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div className="card-surface p-5">
           <div className="flex items-center justify-between mb-4">
@@ -252,7 +273,11 @@ export const DashboardPage: React.FC = () => {
           {dashboard.accounts.length === 0 ? (
             <div className="text-center py-6 space-y-2">
               <p className="text-xs text-[#6B706B]">Добавьте первый счёт для начала учёта</p>
-              <Link to="/accounts" className="btn-secondary inline-block px-3 py-1.5 text-xs font-semibold">
+              <Link
+                to="/accounts"
+                state={{ openCreate: true }}
+                className="btn-secondary inline-block px-3 py-1.5 text-xs font-semibold"
+              >
                 Добавить счёт
               </Link>
             </div>
@@ -284,7 +309,11 @@ export const DashboardPage: React.FC = () => {
               <p className="text-xs text-[#6B706B]">
                 Добавьте будущие платежи, чтобы доступная сумма учитывала обязательства
               </p>
-              <Link to="/planned-expenses" className="btn-secondary inline-block px-3 py-1.5 text-xs font-semibold">
+              <Link
+                to="/planned-expenses"
+                state={{ openCreate: true }}
+                className="btn-secondary inline-block px-3 py-1.5 text-xs font-semibold"
+              >
                 Запланировать расход
               </Link>
             </div>
@@ -313,7 +342,7 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Последние операции (п. 5.6) */}
+      {/* Последние операции */}
       <div className="card-surface p-5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-bold">Последние операции</h2>

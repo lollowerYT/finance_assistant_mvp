@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Pencil, Trash2, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { plannedExpensesApi } from '../../api/plannedExpenses';
 import { dashboardApi } from '../../api/dashboard';
@@ -8,10 +9,15 @@ import { formatDueDate } from '../../lib/formatDate';
 import { validatePlannedExpenseForm } from '../../lib/validation';
 import { Modal } from '../../components/ui/Modal';
 import { ConfirmDialog } from '../../components/ui/ConfirmDialog';
+import { MoneyInput } from '../../components/ui/MoneyInput';
+import { DatePicker } from '../../components/ui/DatePicker';
 import { PayPlannedExpenseModal } from './PayPlannedExpenseModal';
 import type { Account, PlannedExpense, PlannedExpenseStatus } from '../../types/api';
 
 export const PlannedExpensesPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const [expenses, setExpenses] = useState<PlannedExpense[]>([]);
   const [upcomingTotal, setUpcomingTotal] = useState('0.00');
   const [accounts, setAccounts] = useState<Pick<Account, 'id' | 'name' | 'balance'>[]>([]);
@@ -34,6 +40,24 @@ export const PlannedExpensesPage: React.FC = () => {
   const [deletingExpense, setDeletingExpense] = useState<PlannedExpense | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const openCreate = useCallback(() => {
+    setEditingExpense(null);
+    setName('');
+    setAmount('');
+    setDueDate(new Date().toISOString().slice(0, 10));
+    setFieldErrors({});
+    setFormError(null);
+    setIsFormOpen(true);
+  }, []);
+
+  useEffect(() => {
+    const state = location.state as { openCreate?: boolean } | null;
+    if (state?.openCreate) {
+      openCreate();
+      navigate(location.pathname, { replace: true, state: null });
+    }
+  }, [location, navigate, openCreate]);
 
   const loadData = useCallback(
     async (signal?: AbortSignal) => {
@@ -62,16 +86,6 @@ export const PlannedExpensesPage: React.FC = () => {
     loadData(controller.signal);
     return () => controller.abort();
   }, [loadData]);
-
-  const openCreate = () => {
-    setEditingExpense(null);
-    setName('');
-    setAmount('');
-    setDueDate(new Date().toISOString().slice(0, 10));
-    setFieldErrors({});
-    setFormError(null);
-    setIsFormOpen(true);
-  };
 
   const openEdit = (exp: PlannedExpense) => {
     setEditingExpense(exp);
@@ -169,7 +183,6 @@ export const PlannedExpensesPage: React.FC = () => {
         </button>
       </div>
 
-      {/* Верхняя сводка и фильтр статуса (п. 8.2) */}
       <div className="card-surface p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="text-xs text-[#6B706B]">Сумма неоплаченных будущих расходов</div>
@@ -233,7 +246,7 @@ export const PlannedExpensesPage: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setPayingExpense(exp)}
-                      className="btn-primary px-3 py-1.5 text-[11px] font-semibold flex items-center gap-1"
+                      className="btn-primary px-3 py-1.5 text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Отметить оплаченным</span>
@@ -241,7 +254,7 @@ export const PlannedExpensesPage: React.FC = () => {
                     <button
                       onClick={() => openEdit(exp)}
                       aria-label="Редактировать расход"
-                      className="btn-secondary p-1.5"
+                      className="btn-secondary p-1.5 cursor-pointer"
                     >
                       <Pencil className="w-3.5 h-3.5" />
                     </button>
@@ -251,7 +264,7 @@ export const PlannedExpensesPage: React.FC = () => {
                         setDeletingExpense(exp);
                       }}
                       aria-label="Удалить расход"
-                      className="p-1.5 text-red-700 hover:bg-red-50 rounded-lg"
+                      className="p-1.5 text-red-700 hover:bg-red-50 rounded-lg cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -263,7 +276,7 @@ export const PlannedExpensesPage: React.FC = () => {
                         setActionError(null);
                         setUnpayingExpense(exp);
                       }}
-                      className="btn-secondary px-2.5 py-1.5 text-[11px] font-semibold flex items-center gap-1"
+                      className="btn-secondary px-2.5 py-1.5 text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       <span>Вернуть в неоплаченные</span>
@@ -274,7 +287,7 @@ export const PlannedExpensesPage: React.FC = () => {
                         setDeletingExpense(exp);
                       }}
                       aria-label="Удалить расход"
-                      className="p-1.5 text-red-700 hover:bg-red-50 rounded-lg"
+                      className="p-1.5 text-red-700 hover:bg-red-50 rounded-lg cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -311,35 +324,26 @@ export const PlannedExpensesPage: React.FC = () => {
             {fieldErrors.name && <p className="text-red-600 mt-1">{fieldErrors.name}</p>}
           </div>
 
-          <div>
-            <label className="block font-semibold mb-1">Сумма (₽) *</label>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="15000.00"
-              className="input-control tabular-nums font-semibold"
-            />
-            {fieldErrors.amount && <p className="text-red-600 mt-1">{fieldErrors.amount}</p>}
-          </div>
+          <MoneyInput
+            label="Сумма (₽) *"
+            value={amount}
+            onChange={setAmount}
+            placeholder="15000.00"
+            error={fieldErrors.amount}
+          />
 
-          <div>
-            <label className="block font-semibold mb-1">Плановая дата оплаты *</label>
-            <input
-              type="date"
-              value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className="input-control"
-            />
-            {fieldErrors.due_date && <p className="text-red-600 mt-1">{fieldErrors.due_date}</p>}
-          </div>
+          <DatePicker
+            label="Плановая дата оплаты *"
+            value={dueDate}
+            onChange={setDueDate}
+          />
+          {fieldErrors.due_date && <p className="text-red-600 mt-1">{fieldErrors.due_date}</p>}
 
           <div className="flex justify-end gap-2 pt-2">
-            <button type="button" onClick={() => setIsFormOpen(false)} className="btn-secondary px-4 py-2 font-semibold">
+            <button type="button" onClick={() => setIsFormOpen(false)} className="btn-secondary px-4 py-2 font-semibold cursor-pointer">
               Отмена
             </button>
-            <button type="submit" disabled={submitting} className="btn-primary px-4 py-2 font-semibold">
+            <button type="submit" disabled={submitting} className="btn-primary px-4 py-2 font-semibold cursor-pointer">
               {submitting ? 'Сохранение...' : 'Сохранить'}
             </button>
           </div>

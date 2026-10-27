@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { operationsApi } from '../../api/operations';
 import { accountsApi } from '../../api/accounts';
@@ -12,6 +13,42 @@ import { DatePicker } from '../../components/ui/DatePicker';
 import type { Account, Category, Operation, OperationType } from '../../types/api';
 
 const PAGE_LIMIT = 10;
+
+const DescriptionCell: React.FC<{ comment?: string | null }> = ({ comment }) => {
+  const [popoverPos, setPopoverPos] = useState<{ x: number; y: number } | null>(null);
+
+  if (!comment) {
+    return <span className="text-[#6B706B]">—</span>;
+  }
+
+  return (
+    <>
+      <div
+        onMouseEnter={(e) => {
+          const rect = e.currentTarget.getBoundingClientRect();
+          setPopoverPos({
+            x: Math.min(rect.left, window.innerWidth - 320),
+            y: rect.bottom + 6,
+          });
+        }}
+        onMouseLeave={() => setPopoverPos(null)}
+        className="text-[#6B706B] truncate cursor-default"
+      >
+        {comment}
+      </div>
+      {popoverPos &&
+        createPortal(
+          <div
+            style={{ top: popoverPos.y, left: Math.max(12, popoverPos.x) }}
+            className="fixed z-50 max-w-xs card-surface p-3 shadow-xl border border-[#E6E4DD] text-xs text-[#1F2421] leading-relaxed break-words pointer-events-none"
+          >
+            {comment}
+          </div>,
+          document.body
+        )}
+    </>
+  );
+};
 
 export const OperationsPage: React.FC = () => {
   const [operations, setOperations] = useState<Operation[]>([]);
@@ -277,8 +314,8 @@ export const OperationsPage: React.FC = () => {
                       <td className="py-3 px-3 font-semibold truncate" title={catName}>
                         {catName}
                       </td>
-                      <td className="py-3 px-3 text-[#6B706B] truncate" title={op.comment || ''}>
-                        {op.comment || '—'}
+                      <td className="py-3 px-3">
+                        <DescriptionCell comment={op.comment} />
                       </td>
                       <td
                         className="py-3 px-3 truncate"

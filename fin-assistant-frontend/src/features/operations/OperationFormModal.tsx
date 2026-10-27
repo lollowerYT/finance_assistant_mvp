@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Modal } from '../../components/ui/Modal';
+import { MoneyInput } from '../../components/ui/MoneyInput';
 import { categoriesApi } from '../../api/categories';
 import { operationsApi } from '../../api/operations';
 import { AppApiError } from '../../api/errors';
@@ -43,9 +44,6 @@ export const OperationFormModal: React.FC<OperationFormModalProps> = ({
   const [formError, setFormError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Используем ref для отслеживания предыдущего состояния isOpen,
-  // чтобы сбрасывать/инициализировать форму только при моменте открытия модалки,
-  // предотвращая сброс фокуса при вводе данных.
   const prevIsOpenRef = useRef(isOpen);
 
   const loadCategories = async () => {
@@ -96,7 +94,6 @@ export const OperationFormModal: React.FC<OperationFormModalProps> = ({
 
   const filteredCategories = categories.filter((c) => c.type === type);
 
-  // Автоматический выбор первой категории при смене типа операции (только при создании)
   useEffect(() => {
     if (isOpen && type !== 'transfer' && !isEditing && categories.length > 0) {
       const firstCat = categories.find((c) => c.type === type);
@@ -183,7 +180,7 @@ export const OperationFormModal: React.FC<OperationFormModalProps> = ({
               key={t}
               type="button"
               onClick={() => setType(t)}
-              className={`py-1.5 rounded-lg transition ${
+              className={`py-1.5 rounded-lg transition cursor-pointer ${
                 type === t ? 'bg-white text-[#1F2421] shadow-sm' : 'text-[#6B706B]'
               }`}
             >
@@ -196,7 +193,7 @@ export const OperationFormModal: React.FC<OperationFormModalProps> = ({
       {categoriesError && type !== 'transfer' && (
         <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center justify-between">
           <span>{categoriesError}</span>
-          <button type="button" onClick={loadCategories} className="underline font-semibold ml-2">
+          <button type="button" onClick={loadCategories} className="underline font-semibold ml-2 cursor-pointer">
             Повторить
           </button>
         </div>
@@ -209,18 +206,13 @@ export const OperationFormModal: React.FC<OperationFormModalProps> = ({
       )}
 
       <form onSubmit={handleSubmit} noValidate className="space-y-3.5 text-xs">
-        <div>
-          <label className="block font-semibold mb-1">Сумма (₽) *</label>
-          <input
-            type="text"
-            inputMode="decimal"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-            className="input-control tabular-nums font-semibold"
-          />
-          {fieldErrors.amount && <p className="text-red-600 mt-1">{fieldErrors.amount}</p>}
-        </div>
+        <MoneyInput
+          label="Сумма (₽) *"
+          value={amount}
+          onChange={setAmount}
+          placeholder="0.00"
+          error={fieldErrors.amount}
+        />
 
         <div>
           <label className="block font-semibold mb-1">
@@ -304,10 +296,10 @@ export const OperationFormModal: React.FC<OperationFormModalProps> = ({
         </div>
 
         <div className="flex justify-end gap-2 pt-2">
-          <button type="button" onClick={onClose} className="btn-secondary px-4 py-2 font-semibold">
+          <button type="button" onClick={onClose} className="btn-secondary px-4 py-2 font-semibold cursor-pointer">
             Отмена
           </button>
-          <button type="submit" disabled={isSubmitDisabled} className="btn-primary px-4 py-2 font-semibold">
+          <button type="submit" disabled={isSubmitDisabled} className="btn-primary px-4 py-2 font-semibold cursor-pointer">
             {submitting ? 'Сохранение...' : 'Сохранить'}
           </button>
         </div>
